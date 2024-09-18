@@ -1,16 +1,18 @@
 class Band:
-    all=[]
+    _id_counter = 1
+    all = []
+
     def __init__(self, name, hometown):
-        if isinstance(hometown, str) and len(hometown):
-            self._hometown = hometown
-        else:
-            raise ValueError("Hometown must be a non-empty string")
-        if isinstance(name, str) and len(name) > 0:
-            self._name = name
-        else:
-            raise ValueError("Name must be a non-empty string.")
-        Band.all.append(self) 
-    
+        self._id = Band._id_counter
+        Band._id_counter += 1
+        self.name = name
+        self.hometown = hometown
+        Band.all.append(self)
+
+    @property
+    def id(self):
+        return self._id
+
     @property
     def name(self):
         return self._name
@@ -26,12 +28,18 @@ class Band:
     def hometown(self):
         return self._hometown
 
+    @hometown.setter
+    def hometown(self, value):
+        if isinstance(value, str) and len(value) > 0:
+            self._hometown = value
+        else:
+            raise ValueError("Hometown must be a non-empty string.")
+
     def concerts(self):
         return [concert for concert in Concert.all_concerts if concert.band == self]
 
     def venues(self):
-        venues = list(set(concert.venue for concert in self.concerts()))
-        return venues if venues else None
+        return list(set(concert.venue for concert in self.concerts()))
 
     def play_in_venue(self, venue, date):
         if not isinstance(venue, Venue):
@@ -39,27 +47,24 @@ class Band:
         return Concert(date, self, venue)
 
     def all_introductions(self):
-        return [
-            concert.introduction() for concert in self.concerts() if concert.introduction()
-        ]
+        return [concert.introduction() for concert in self.concerts()]
 
 
 class Concert:
+    _id_counter = 1
     all_concerts = []
 
     def __init__(self, date, band, venue):
-        if isinstance(date, str) and len(date) > 0:
-            self._date = date
-        else:
-            raise ValueError("Date must be a non-empty string.")
-        if not isinstance(band, Band):
-            raise TypeError("Band must be of type Band")
-        self._band = band
-        if isinstance(venue, Venue):
-            self._venue = venue
-        else:
-            raise ValueError("Venue must be an instance of Venue class.")
+        self._id = Concert._id_counter
+        Concert._id_counter += 1
+        self.date = date
+        self.band = band
+        self.venue = venue
         Concert.all_concerts.append(self)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def date(self):
@@ -88,17 +93,19 @@ class Concert:
 
 
 class Venue:
-    all=[]
+    _id_counter = 1
+    all = []
+
     def __init__(self, name, city):
-        if isinstance(name, str) and len(name) > 0:
-            self._name = name
-        else:
-            raise ValueError("Name must be a non-empty string.")
-        if isinstance(city, str) and len(city) > 0:
-            self._city = city
-        else:
-            raise ValueError("City must be a non-empty string.")
+        self._id = Venue._id_counter
+        Venue._id_counter += 1
+        self.name = name
+        self.city = city
         Venue.all.append(self)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def name(self):
@@ -127,9 +134,6 @@ class Venue:
 
     def bands(self):
         return list({concert.band for concert in self.concerts()})
-    
+
     def concert_on(self, date):
-        for concert in self.concerts():
-            if concert.date == date:
-                return concert
-        return None
+        return next((concert for concert in self.concerts() if concert.date == date), None)
